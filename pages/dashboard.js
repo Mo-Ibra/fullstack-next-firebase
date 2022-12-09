@@ -75,7 +75,7 @@ const Dashboard = () => {
             {
                 !posts.length && (
                     <div className="my-4">
-                        <p>Sorry you don't have any posts</p>
+                        <p>Sorry you dont have any posts</p>
                         <p>You can create from <Link href={{ pathname: "/post" }}><span className="text-blue-500">Here</span></Link></p>
                     </div>
                 )
