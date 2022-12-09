@@ -1,9 +1,9 @@
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth, db } from "../utils/firebase";
-import { useRouter } from "next/router";
-import { useState } from "react";
+import Router, { useRouter } from "next/router";
+import { useEffect, useState } from "react";
 import { toast } from 'react-toastify';
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { addDoc, collection, doc, serverTimestamp, updateDoc } from "firebase/firestore";
 
 const Post = () => {
 
@@ -33,21 +33,46 @@ const Post = () => {
             return;
         }
 
-        // Create new post (Firebase)
-        const collectionRef = collection(db, "posts");
-        await addDoc(collectionRef, {
-            ...post,
-            timestamp: serverTimestamp(),
-            user: user.uid,
-            avatar: user.photoURL,
-            username: user.displayName,
-        });
+        if (post?.hasOwnProperty("id")) {
+            // Update Post
+            const docRef = doc(db, "posts", post.id);
+            const updatedPost = { ...post, timestamp: serverTimestamp() };
+            await updateDoc(docRef, updatedPost);
+            toast.success("Post Updated", toastOptions);
+            return route.push("/");
 
-        // Success
-        setPost({ description: "" });
-        toast.success("Post Added", toastOptions);
-        return route.push("/");
+        } else {
+
+            // Create new post (Firebase)
+            const collectionRef = collection(db, "posts");
+            await addDoc(collectionRef, {
+                ...post,
+                timestamp: serverTimestamp(),
+                user: user.uid,
+                avatar: user.photoURL,
+                username: user.displayName,
+            });
+
+            // Success
+            setPost({ description: "" });
+            toast.success("Post Added", toastOptions);
+            return route.push("/");
+        }
     }
+
+    // Check user
+    const checkUser = () => {
+        if (loading) return;
+        if (!user) route.push("/auth/login");
+        if (routeData.id) {
+            setPost({ description: routeData.description, id: routeData.id });
+        }
+    }
+
+
+    useEffect(() => {
+        checkUser();
+    }, [user, loading]);
 
     return (
         <div className="my-20 p-12 shadow-lg rounded-lg max-w-md mx-auto">

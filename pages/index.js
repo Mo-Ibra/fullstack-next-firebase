@@ -2,12 +2,14 @@ import { collection, doc, onSnapshot, orderBy, query } from 'firebase/firestore'
 import Head from 'next/head';
 import { useEffect, useState } from 'react';
 import Message from '../components/message';
-import { db } from '../utils/firebase';
+import { auth, db } from '../utils/firebase';
 import Link from 'next/link';
+import { useAuthState } from 'react-firebase-hooks/auth';
 
 const Home = () => {
 
   const [posts, setPosts] = useState([]);
+  const [user, loading] = useAuthState(auth);
 
   const getPosts = async () => {
 
@@ -20,6 +22,10 @@ const Home = () => {
     });
 
     return unsubscribe;
+  }
+
+  const signOut = () => {
+    auth.signOut();
   }
 
   useEffect(() => {
@@ -47,6 +53,19 @@ const Home = () => {
           ))
         }
       </div>
+
+      {
+        user && (
+          <div className="text-center my-5">
+            <p className="text-md font-bold text-gray-500">{loading ? 'Loading' : user && user.displayName}</p>
+            <button
+              className="text-white bg-red-500 py-1 px-2 text-sm rounded-sm"
+              onClick={signOut}>
+              Sign Out
+            </button>
+          </div>
+        )
+      }
     </div>
   )
 }
